@@ -1,0 +1,14 @@
+/*
+   while loop
+*/
+
+first
+{
+  integer c=12;
+   while(c+3)
+   {
+     integer b=c+13;
+   
+   }
+}
+end

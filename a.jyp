@@ -1,0 +1,11 @@
+
+
+first{
+  integer x = 1;
+  integer y = 2;
+  integer z=x+2;
+  z=y;
+  integer a=5;
+  integer v [5];
+}
+end

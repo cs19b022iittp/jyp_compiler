@@ -1,0 +1,13 @@
+/*declaration part
+multi line commnets
+*/
+
+// single line comments
+first
+{
+integer a=10;  // comments between lines
+float c=1.3;
+integer b=6;
+
+}
+end

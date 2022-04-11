@@ -1,0 +1,12 @@
+/*
+  for loop 
+*/
+first{
+  integer a=10;
+  
+  for(integer i=0;i<1;i++)
+  {
+    a=a+20;
+  }
+}
+end

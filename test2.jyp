@@ -1,0 +1,9 @@
+// variable s2 is not defined. It shows error.// label checking
+
+first{
+  integer s1=100;
+  s1=s2 - 23;
+  s1=s1 < 3;
+
+}
+end
