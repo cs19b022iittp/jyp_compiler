@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<string.h>
 #include <stdlib.h>
+
 #define sym_table_size 50
 #define start_program 101
 #define empty_program 102
@@ -40,6 +41,7 @@
 #define double_type 136
 #define array_dec_type 137
 #define arr_type 138
+#define parameter_size 10
 union value
 {
  int ival;   //int
@@ -50,6 +52,7 @@ union value
  int bval; //bool 
  
 };
+
 struct Symbol{
 	char name[20]; // token name
 	int type;      //data type 0-void 1-int 2-float 3-double 4-bool 5-char 6-string 
@@ -60,10 +63,11 @@ struct Symbol{
 	struct SymbolTable *symbol_table; 	// pointer to the sybol table if it is a method
 	struct Symbol *next;                /* Pointer to the next symbol in the symbol table */
 	struct Symbol *prev;
+	int scope;
 	int reg;
 	int assign_type;
-	int no_of_array_elements;
-
+	int no_of_elements;// no of parameters or array size
+        struct Symbol *parameter[parameter_size];
 };
 
 struct SymbolTable{
@@ -78,9 +82,10 @@ struct Node {
   struct Node *child[4];
 };
 
-struct Symbol *createsymbol(char *name,int type,union value *val,char tag, int no_of_array_elements);
+struct Symbol *createsymbol(char *name,int type,union value *val,char tag, int no_of_array_elements,int scope);
 void insertsymbol(struct Symbol *s);
 void printtable();
+void printfunctiontable();
 void set_value(int );
 void set_value_for_symbol(struct Symbol*s,int t,struct Symbol* s1);
 struct Node* createNode(int type, struct Symbol *s, struct Node* one, struct Node* two, struct Node* three);

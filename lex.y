@@ -9,7 +9,7 @@ int yyerror(char*);
 int yylex();
 
 extern FILE* yyin;
-
+int scope=0;
 char name[20];
 char tag;
 struct Node* root;
@@ -41,6 +41,7 @@ struct Symbol *st[50];
   int integer;
   double d;
   float f;
+  char c;
   char yid[100];
   char character;
   char string[300];
@@ -48,36 +49,42 @@ struct Symbol *st[50];
   char lexeme[20];
   int b;
   struct Node* node;
+  int p;//parameters
 }
 
 
 
 
 %token ADD SUB MUL DIV ASSIGN AND OR XOR LTE GTE EQUAL NOTEQUAL NOT INCREMENT DECREMENT ASGNADD ASGNSUB ASGNDIV ASGNMUL ASGNMOD MOD  
-%token '{' '}' '(' ')' '[' ']' ',' LT GT NEGINT_CONST FLOAT_CONSTANT STRING_CONSTANT DOUBLE_CONSTANT
+%token '{' '}' '(' ')' '[' ']' ',' LT GT NEGINT_CONST FLOAT_CONSTANT STRING_CONSTANT DOUBLE_CONSTANT CHAR_CONSTANT
 
 %token IF ELSE ELIF VOID FIRST INTEGER DOUBLE STRING BOOL BREAK CONT FOR WHILE SCOL IDENTIFIER INTEGER_CONSTANT FLOAT LONG SWITCH RETURN CASE OUT CHAR END INP 
 %type <lexeme>   IDENTIFIER 
 %type <integer>  NEGINT_CONST
+%type <p> parameters  parameters_list parameter  //counting no of parameters for a function
 
 
 
-%type <node> program funcs func func_name parameters parameters_list stmts_list stmt parameter data_type assignment_stmt constant expression value operator conditional_stmt else_if_stmt else_stmt condition relational_operator inp_list array_declaration expn_inc while_loop for_loop
+%type <node> program funcs func func_name  stmts_list stmt data_type assignment_stmt constant expression value operator conditional_stmt else_if_stmt else_stmt condition relational_operator inp_list array_declaration expn_inc while_loop for_loop
 
 %%
 //char *name,int type,union value *val,char tag
-program :			funcs FIRST '{' stmts_list '}'  END{
+program :			funcs FIRST '{'{scope++;} stmts_list '}' {scope--;} END{
 						//printf("\nYES\n"); 
 							
-						sym=createsymbol("first",0,&valu,'m',0);
+						sym=createsymbol("first",0,&valu,'m',0,scope);
 								
-						s1=createsymbol("end",0,&valu,'m',0);
+						s1=createsymbol("end",0,&valu,'m',0,scope);
 						//printf("hello 123\n");
 						add_method_to_methodstable(sym); // adding method as it is start 
 						add_method_to_methodstable(s1);
 						 
 						printtable();	// printing the symbol table
-						 
+						 printf("\n");
+						 printf("\n");
+						 printf("\n");
+						 printf("\n");
+						 printfunctiontable(); //printing the functions list;
 					} 
 					|
 					{   
@@ -95,11 +102,12 @@ funcs:                            funcs func
                                    
                                   };
 
-func:                             func_name '{' stmts_list '}' 
+func:                             func_name '{'{scope++;} stmts_list  return_stmt SCOL{ s1= pop_stack(); }  '}' {scope--;}
                                   {
                                     //printf("func - 2\n");
-                                    s1 = pop_stack();
-                                    s2 = pop_stack();
+
+                                    s2 = pop_stack();//function name
+                                    printf("data type is %s , return type is %s",s2->name,s1->name);
                                     if(s1->type != s2->type){
                                     	printf("Error : Return type doesnt match");
                                     }
@@ -108,27 +116,47 @@ func:                             func_name '{' stmts_list '}'
 func_name:                        data_type IDENTIFIER '(' parameters ')' 
                                   {
                                   //  $$ = createNode(function_name_type, NULL, $1, $4, NULL);
+                                  printf("no of parameters are %d\n",$4);
                                     //printf("func-3\n");
+                                    int paramsize=$4;
+                                    struct Symbol *symparam[paramsize];
+                                    int indp=0;
+                                    while(paramsize!=0)
+                                    {
+                                    
+                                      symparam[indp]=pop_stack();
+                                      
+                                     paramsize--;
+                                     indp++;
+                                    }
+                                    paramsize=$4;
                                     s1=pop_stack();
                                     set_value(s1->type);
-                                    sym = createsymbol($2, s1->type, &valu, 'f', 0);
+                                    sym = createsymbol($2, s1->type, &valu, 'f', $4,scope);
+                                    while(paramsize!=0)
+                                    {
+                                     sym->parameter[$4-paramsize]=symparam[$4-paramsize]; 
+                                     paramsize--;
+                                    }
                                     push_stack(sym);
                                     add_method_to_methodstable(sym);		// adding it to a method table as it is function
                                     //printf("func-added successfully\n");
                                   };	 
                                   
 parameters:			parameters_list{
-					//$$ = $1;
+					$$ = $1;
 				   } | {
 				   //	$$ = NULL;
 				   printf("no-parameters \n");
 				   }; 
 				   
 parameters_list:		parameter ',' parameters_list{
-					//$$ = createNode(parameter_type, NULL, $1, $3, NULL);
+					$$ =$3+1;
+					//printf("dollar value is %d \n",$$);
 				   }| parameter{
-				   	//$$ = $1;
-				   };
+				   	$$ = 1;
+				   //	printf("dollar 1 value is %d \n",$$);
+				   }| {$$=0;printf("dollar 0 value is %d \n",$$);};
 
 stmts_list : 			stmt stmts_list {
 					//printf("statements lists called \n");
@@ -147,7 +175,6 @@ stmt : 			parameter SCOL {
 				
 				} | array_declaration SCOL{
 					//$$ = $1;
-				} | return_stmt SCOL{
 				} | expn_inc SCOL{
 					//printf("\nincrement\n");	
 				} | while_loop {};
@@ -174,7 +201,7 @@ array_declaration :	data_type IDENTIFIER '[' INTEGER_CONSTANT ']' ASSIGN '{' inp
 						printf("error in data type match\n");
 					}
 				}
-				struct Symbol* s5 = createsymbol(array_name,ele_type, &valu, 'a', size);  // creating symbol of array type
+				struct Symbol* s5 = createsymbol(array_name,ele_type, &valu, 'a', size,scope);  // creating symbol of array type
 				insertsymbol(s5); // inserting symbol 
 				
 
@@ -189,7 +216,7 @@ array_declaration :	data_type IDENTIFIER '[' INTEGER_CONSTANT ']' ASSIGN '{' inp
 				printf("%s - name \n",$2);
 				int ele_type = s4->type; // to get the type of elements
 				printf("%d - %s",size,$2);
-				struct Symbol* s5 = createsymbol($2,ele_type, &valu, 'a', size);  // creating symbol of array type
+				struct Symbol* s5 = createsymbol($2,ele_type, &valu, 'a', size,scope);  // creating symbol of array type
 				insertsymbol(s5); // inserting symbol 
 				
 				// data_type , inp_list
@@ -209,7 +236,9 @@ assignment_stmt : 		parameter ASSIGN expression {
 					//printf("assignment-statement\n");
 					struct Symbol *sym1=pop_stack();  // to get the res of expression
 					struct Symbol *sym2=pop_stack();   // to get the variable
-					if(sym1->type != sym2->type){
+					if(sym1->type != sym2->type && !( (sym1->type==1 && sym2->type==5)||(sym1->type==5 && sym2->type==1) ) ){
+					printf("symb2 parameter type is %d, symb1 expre type is %d \n ",sym2->type,sym1->type);
+					printf("expression name is %s \n",sym1->name);
 						printf("Error : Assignment is not possible in different types \n");
 					}
 					else{
@@ -240,14 +269,14 @@ assignment_stmt : 		parameter ASSIGN expression {
 						}
 						
 						
-						sym = createsymbol(var_name,t,&valu,'v', 0);
+						sym = createsymbol(var_name,t,&valu,'v', 0,scope);
 						//insertsymbol(sym);
 					}
 					
 				};
 			
 
-conditional_stmt :		IF '(' condition ')' '{' stmts_list '}'  else_if_stmts {
+conditional_stmt :		IF '(' condition ')' '{'{scope++;} stmts_list '}' {scope--;} else_if_stmts {
 					
 				};
 				
@@ -257,16 +286,15 @@ else_if_stmts :		else_if_stmts1 else_stmt{
 else_if_stmts1 :		else_if_stmt else_if_stmts{
 					
 				}| {};
-else_if_stmt :			ELIF '(' condition ')' '{' stmts_list '}' {} ;
+else_if_stmt :			ELIF '(' condition ')' '{'{scope++;} stmts_list '}'{scope--;};
 
-else_stmt : 			ELSE '{' stmts_list '}'{
-					
-				} | {
+else_stmt : 			ELSE '{' {scope++;} stmts_list '}' {scope--;} | {
 					
 				};
 
-for_loop:			FOR '(' assignment_stmt SCOL condition SCOL expn_inc ')' '{' stmts_list '}'{
+for_loop:			FOR '(' assignment_stmt SCOL condition SCOL expn_inc ')' '{' {scope++;} stmts_list '}'{
 					//printf("\ninside for\n");
+					scope--;
 				};
 				
 				
@@ -302,9 +330,9 @@ while_loop:                       WHILE
                                     push_while(sym);
                                   }
                                  {printf("condition in while\n");} */
-                                 '(' condition ')'  '{' stmts_list '}'
+                                 '(' condition ')'  '{'  {scope++;} stmts_list '}'
                                   {
-                                    
+                                     scope--;                                    
                                     //pop_while();
                                     //printf("\ninside while\n");
                                    
@@ -322,7 +350,7 @@ condition : 			condition relational_operator expression {   // condition && || c
 					printf("%d \n",c3->val.ival); */
 					
 				//	struct Symbol *c3 = pop_stack();  // for condition
-					//struct Symbol *s = createsymbol("bool",s1->type,&valu, 'c', 0);
+					//struct Symbol *s = createsymbol("bool",s1->type,&valu, 'c', 0,scope);
 					//push_stack(s);
 					
 				} | expression {
@@ -334,38 +362,38 @@ relational_operator : 		   LTE
                                   {
                                     printf("inside re op\n");
                                     strcpy(valu.sval,"lte");
-                                    struct Symbol * reop = createsymbol("lte",8, &valu, 'c',0);
+                                    struct Symbol * reop = createsymbol("lte",8, &valu, 'c',0,scope);
                                     push_stack(reop);
                                   }
                                   | GTE 
                                   {
                                     
                                     strcpy(valu.sval,"gte");
-                                    struct Symbol * reop = createsymbol("gte",8, &valu, 'c',0);
+                                    struct Symbol * reop = createsymbol("gte",8, &valu, 'c',0,scope);
                                     push_stack(reop);
                                   }
                                   | LT 
                                   {
                                      strcpy(valu.sval,"lt");
-                                    struct Symbol * reop = createsymbol("lt",8, &valu, 'c',0);
+                                    struct Symbol * reop = createsymbol("lt",8, &valu, 'c',0,scope);
                                     push_stack(reop);
                                   }
                                   | GT 
                                   {
                                     strcpy(valu.sval,"gte");
-                                    struct Symbol * reop = createsymbol("gte",8, &valu, 'c',0);
+                                    struct Symbol * reop = createsymbol("gte",8, &valu, 'c',0,scope);
                                     push_stack(reop);
                                   }
                                   | EQUAL 
                                   {
                                      strcpy(valu.sval,"eq");
-                                    struct Symbol * reop = createsymbol("eq",8, &valu, 'c',0);
+                                    struct Symbol * reop = createsymbol("eq",8, &valu, 'c',0,scope);
                                     push_stack(reop);
                                   }
                                   | NOTEQUAL
                                   {
                                      strcpy(valu.sval,"neq");
-                                    struct Symbol * reop = createsymbol("neq",8, &valu, 'c',0);
+                                    struct Symbol * reop = createsymbol("neq",8, &valu, 'c',0,scope);
                                     push_stack(reop);
                                   };
                                   
@@ -397,7 +425,7 @@ value :			constant {
 					}
 						
 					
-						//sym = createsymbol(var_name,t,&valu,'v');
+						//sym = createsymbol(var_name,t,&valu,'v',scope);
 				};
 				
 				
@@ -411,6 +439,7 @@ expression :     		expression operator value{
 					struct Symbol * e2 = pop_stack();//exp
 					//printf("exp value is%s \n",e2->name);
 					//printf("%d \n",e1->val.ival);
+					printf("%s   %s   %s\n",e1->name,e2->name,e3->name);
 					if(e2==NULL)
 					{
 					  printf("Error: Variable is not declared\n");
@@ -432,8 +461,8 @@ expression :     		expression operator value{
 	    						tmp = tmp->next;
 						}
 						
-						if(tmp==NULL)
-							printf("Error : variable %s is undeclared \n",e2->name);
+						if(tmp==NULL && strcmp(e2->name,"expression_value")!=0)
+							printf("Error : variable %s , %d is undeclared \n",e2->name,e2->val.ival);
 						else{
 							switch(t){
 								case 1:	// value is of type int
@@ -456,10 +485,15 @@ expression :     		expression operator value{
 									}
 									// complete other cases
 									else if(e2->type == 5){
-									//char to int conversion
+									//char to int conversion , but possible for int to char
+										if(strcmp(e3->name,"+")==0)
+											valu.ival=(int)(e2->val.ival)+e1->val.ival;
+										else if(strcmp(e3->name,"-")==0)
+									                valu.ival=(int)(e2->val.ival)-e1->val.ival;
 									}
 									//printf("%d                      @++++++++++++++++++==@@",valu.ival);
-									sym = createsymbol("expression_value",t,&valu,'e', 0);
+									printf("create expression_value type is %d\n",t);
+									sym = createsymbol("expression_value",t,&valu,'e', 0,scope);
 									break;
 								case 2:	// value is of type float
 										if(e2->type == 1){
@@ -493,23 +527,23 @@ expression :     		expression operator value{
 				};
 				
 operator:			ADD {
-                                	sym = createsymbol("+", 0, &valu, 'o', 0);
+                                	sym = createsymbol("+", 0, &valu, 'o', 0,scope);
                                 	push_stack(sym);
 					
 				} | SUB {
-                                	sym = createsymbol("-", 0, &valu, 'o', 0);
+                                	sym = createsymbol("-", 0, &valu, 'o', 0,scope);
                                 	push_stack(sym);
 					
 				} | MUL {
-                                	sym = createsymbol("*", 0, &valu, 'o', 0);
+                                	sym = createsymbol("*", 0, &valu, 'o', 0,scope);
                                 	push_stack(sym);
 					
 				} | DIV {
-                                	sym = createsymbol("/", 0, &valu, 'o', 0);
+                                	sym = createsymbol("/", 0, &valu, 'o', 0,scope);
                                 	push_stack(sym);
 					
 				} | MOD {
-                                	sym = createsymbol("%", 0, &valu, 'o', 0);
+                                	sym = createsymbol("%", 0, &valu, 'o', 0,scope);
                                 	push_stack(sym);
 					
 				}|relational_operator{printf("re is eplored\n");};		
@@ -521,13 +555,13 @@ constant : 						  INTEGER_CONSTANT
                                     valu.ival = yylval.integer; // setting the value
                                     //char * ivalue;
                                     //sprintf(ivalue,"%d",$1);
-                                    sym = createsymbol("int-const", 1, &valu, 'c', 0);
+                                    sym = createsymbol("int-const", 1, &valu, 'c', 0,scope);
                                     insertsymbol(sym);
                                     
                                     push_stack(sym);
                                   } | STRING_CONSTANT {
                                   	strcpy(valu.sval,yylval.string);
-                                  	sym=createsymbol("string-const",6, &valu, 'c', 0);
+                                  	sym=createsymbol("string-const",6, &valu, 'c', 0,scope);
                                   	insertsymbol(sym);
                                   	
                                   	push_stack(sym);
@@ -535,10 +569,16 @@ constant : 						  INTEGER_CONSTANT
                                   {
                                     valu.fval = yylval.f; // setting the value
                                     //char *fvalue = gcvt($1,6,fvalue);
-                                    sym = createsymbol("float-const", 2, &valu, 'c', 0);
+                                    sym = createsymbol("float-const", 2, &valu, 'c', 0,scope);
                                     insertsymbol(sym);
                                     
                                     push_stack(sym);
+                                  }| CHAR_CONSTANT
+                                  {
+                                    valu.cval=yylval.a[1];
+                                       sym = createsymbol("char-const", 5, &valu, 'c', 0,scope); 
+                                       insertsymbol(sym);
+                                       push_stack(sym);
                                   } ;
 
 
@@ -551,11 +591,30 @@ constant : 						  INTEGER_CONSTANT
 //assign_stmt : parameter assignment  ; // a =
 
 parameter : data_type IDENTIFIER{
-				     set_value(type);	// setting default value based on type
-                                    s1 = pop_stack();	// to get the data_type of the identifier
-                                    sym = createsymbol($2, s1->type, &valu, 'v', 0);	
-                                    insertsymbol(sym);
-                                    push_stack(sym);
+
+                                       char * var_name = $2;
+	   			 	struct SymbolTable current_method_table = table[current_method_id];
+	   			 	int ind = generate_key(var_name);
+	   			 	struct Symbol *tmp = current_method_table.symbols[ind];
+	   			 	
+	   			 	while(tmp){	// checking if the variable is already declared in the method
+						if(strcmp(tmp->name,var_name) ==0)
+							break;
+    						tmp = tmp->next;
+					}
+					
+					if(tmp==NULL)
+					{
+		                             set_value(type);	// setting default value based on type
+		                            s1 = pop_stack();	// to get the data_type of the identifier
+		                            sym = createsymbol($2, s1->type, &valu, 'v', 0,scope);	
+		                            insertsymbol(sym);
+		                            push_stack(sym);
+		                            }
+					else{
+						printf("variable already declared");
+					}                                            
+
                                    
 	   			 } | IDENTIFIER '[' INTEGER_CONSTANT ']' {
 	   			 //   array name	index
@@ -599,23 +658,23 @@ parameter : data_type IDENTIFIER{
 
 data_type : INTEGER {
 			//printf("data-type-integer \n");
-                        sym = createsymbol("integer", 1, &valu, 'c', 0);
+                        sym = createsymbol("integer", 1, &valu, 'c', 0,scope);
                         push_stack(sym);
                     } | STRING {
                         
-                        sym = createsymbol("string", 6, &valu, 'c', 0);
+                        sym = createsymbol("string", 6, &valu, 'c', 0,scope);
                         push_stack(sym);
                     } | CHAR {
                        
-                        sym = createsymbol("char", 5, &valu, 'c', 0);
+                        sym = createsymbol("char", 5, &valu, 'c', 0,scope);
                         push_stack(sym);
                     } | FLOAT {
                         
-                        sym = createsymbol("float", 2, &valu, 'c', 0);
+                        sym = createsymbol("float", 2, &valu, 'c', 0,scope);
                         push_stack(sym);
                     } | DOUBLE {
                         
-                        sym = createsymbol("double", 3, &valu, 'c', 0);
+                        sym = createsymbol("double", 3, &valu, 'c', 0,scope);
                         push_stack(sym);
                     };
                     
@@ -667,14 +726,15 @@ int yyerror(char *s) {
   return 0;
 }
 
-struct Symbol *createsymbol(char *name,int type,union value *val,char tag, int no_of_array_eles)
+struct Symbol *createsymbol(char *name,int type,union value *val,char tag, int no_of_array_eles,int _scope)
 {
      struct Symbol *s=(struct Symbol*)malloc(sizeof( struct Symbol )) ;
      s->tag=tag;
      strcpy(s->name,name);
     // printf("%s      --------------------",s->name);
      s->type=type;
-     s->no_of_array_elements = no_of_array_eles;
+     s->scope=_scope;
+     s->no_of_elements = no_of_array_eles;
     // 0-void 1-int 2-float 3-double 4-bool 5-char 6-string 
      switch(type){
 	
@@ -793,7 +853,7 @@ void set_value_for_symbol(struct Symbol* s,int type, struct Symbol*s1){
       s->val.bval=s1->val.bval; 
       break; 
     case 5:
-      s->val.cval=s1->val.cval ='\0'; 
+      s->val.cval=s1->val.cval ; 
       break; 
     case 6:
       strcpy(s->val.sval,s1->val.sval) ; 
@@ -881,8 +941,8 @@ void Initialize_table(){
 
 // printing the symbols
 void printtable(){
-printf("%10s |%10s |%15s |%10s |%10s |%10s\n","Name","Class","Type","DataType","Value","NoOfElements");
-printf("-----------------------------------------------------------------------------\n");
+printf("%10s |%10s |%15s |%10s |%10s |%10s |%10s\n","Name","Class","Type","DataType","Value","NoOfElements","Scope");
+printf("-------------------------------------------------------------------------------------------\n");
 for(int i=0;i<50;i++){
     for(int j=0;j<50;j++){
       if(table[i].symbols[j] != NULL) {
@@ -934,6 +994,9 @@ for(int i=0;i<50;i++){
             case 3:
               printf("%10s |","double");
               break;
+            case 5:
+              printf("%10s |","character");
+              break;              
             case 6:
               printf("%10s |","string");
               break;
@@ -950,13 +1013,17 @@ for(int i=0;i<50;i++){
 		    case 3:
 		      printf("%10f |",s3->val.dval);
 		      break;
+		    case 5:
+		      printf("%10c |",s3->val.cval);
+		      break;		      
 		    case 6:
 		      printf("%10s |",s3->val.sval);
 		      break;
 		    case 4:
 		      printf("%10d |",s3->val.ival);
 		  }
-          printf("%10d\n", s3->no_of_array_elements);
+          printf("%10d   |", s3->no_of_elements);
+          printf("%10d\n",s3->scope);
           s3 = s3->next;
         }
       }
@@ -964,6 +1031,105 @@ for(int i=0;i<50;i++){
     
     
   }
+}
+
+void printfunctiontable(){
+printf("%10s |%10s |%15s |%10s |%10s |%10s |%10s\n","Name","Class","Type","DataType","Value","NoOfElements","Scope");
+printf("-------------------------------------------------------------------------------------------\n");
+
+    for(int j=0;j<50;j++){
+      if(methods_table.symbols[j] != NULL) {
+        struct Symbol* s3 = methods_table.symbols[j];
+        while(s3 != NULL) {
+          printf("%10s |",s3->name); // name of the variable
+          switch(s3->tag) {
+            case 'c':
+              printf("%10s |","Constant");
+              break;
+            case 'f':
+              printf("%10s |","Function");
+              break;
+            case 'a':
+              printf("%10s |","Array");
+              break;
+            case 'v':
+              printf("%10s |","Variable");
+              break;
+            case 'm':
+                printf("%10s |","Main");
+            	break;
+          }
+          switch(s3->tag) {
+            case 'c':
+              printf("%15s |","constant");
+              break;
+            case 'f':
+              printf("%15s |","Function");
+              break;
+            case 'a':
+              printf("%15s |","Array");
+              break;
+            case 'v':
+              printf("%15s |","Identifier");
+              break;
+            case 'm':
+                printf("%15s |","Main");
+            	break;
+          }
+          type = s3->type;
+          switch(type) {
+            case 1:
+              printf("%10s |","integer");
+              break;
+            case 2:
+              printf("%10s |","float");
+              break;   
+            case 3:
+              printf("%10s |","double");
+              break;
+            case 5:
+              printf("%10s |","character");
+              break;              
+            case 6:
+              printf("%10s |","string");
+              break;
+            case 4:
+              printf("%10s |","boolean");
+          }
+          switch(type) {
+		    case 1:
+		      printf("%10d |",s3->val.ival);
+		      break;
+		    case 2:
+		      printf("%10f |",s3->val.fval);
+		      break;		      
+		    case 3:
+		      printf("%10f |",s3->val.dval);
+		      break;
+		    case 5:
+		      printf("%10c |",s3->val.cval);
+		      break;		      
+		    case 6:
+		      printf("%10s |",s3->val.sval);
+		      break;
+		    case 4:
+		      printf("%10d |",s3->val.ival);
+		  }
+          printf("%10d   |", s3->no_of_elements);
+          printf("%10d\n",s3->scope);
+          int psize=s3->no_of_elements;
+          while(psize!=0)
+          {
+          printf("name of param is %10s and data type of param is %d\n",s3->parameter[s3->no_of_elements-psize]->name,s3->parameter[s3->no_of_elements-psize]->type);
+          psize--;
+          }
+          s3 = s3->next;
+        }
+      }
+    }
+    
+    
+  
 }
 
 

@@ -6,10 +6,14 @@ first{
     integer a=1;
     for(integer i=0;i<1;i++)
   {
+        integer b=20;
       for(integer j=0;j<1;j++)
      {
+       integer c=30;
         a=a+20;
      }
+     integer d=40;
   }
+  integer e=11;
 }
 end
