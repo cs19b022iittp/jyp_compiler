@@ -1,0 +1,9 @@
+first{
+   integer a = 1;
+   integer b = 2;
+   integer c = 3;
+   c = 4;
+   integer d=b+c+a;
+   d=c+3;
+}
+end

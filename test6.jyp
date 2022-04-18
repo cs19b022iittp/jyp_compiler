@@ -7,18 +7,19 @@ integer addnum(integer a1, integer b1)
   integer t=0;
    return t;
 }
+
 first{
   integer a=1;
   integer b=9;
   integer c=10;
   integer d=5;
-  char e='A';
+//  char e='A';
   a=a+2;
   b=b - 2;
   c=c/5;
   d=d%3;
  a=b+d+c;
- a=e+a;
+// a=e+a;
  // a+=3;
 }
 end

@@ -3,44 +3,7 @@
 #include <stdlib.h>
 
 #define sym_table_size 50
-#define start_program 101
-#define empty_program 102
-#define int_type 103
-#define parameter_type 104
-#define function_type 105
-#define function_name_type 106
-#define statement_type 107
-#define assignment_type 108
-#define integer_constant 109
-#define value_type 110
-#define addition_type 111
-#define subtraction_type 112
-#define multiplication_type 113
-#define division_type 114
-#define modulos_type 115
-#define expression_type 116
-#define identifier_type 117
-#define boolean_type 118
-#define if_statement_type 119
-#define else_if_statement_type 120
-#define else_statement_type 121
-#define less_than_equal_type 122
-#define greater_than_equal_type 123
-#define less_than_type 124
-#define greater_than_type 125
-#define equal_type 126
-#define not_equal_type 127
-#define string_constant 128
-#define char_constant 129
-#define float_constant 130
-#define double_constant 131
-#define input_list_type 132
-#define float_type 133
-#define char_type 134
-#define string_type 135
-#define double_type 136
-#define array_dec_type 137
-#define arr_type 138
+
 #define parameter_size 10
 union value
 {

@@ -106,7 +106,7 @@ STRING
 "-"{digit}*                                                    { return NEGINT_CONST;}
 {digit}*?\.{digit}+                                       {yylval.f=atof(yytext);return FLOAT_CONSTANT;}
 \'.\'                                                     {yylval.a=yytext;printf("char constant is %s",yylval.a); return CHAR_CONSTANT;} 
-\".*\"                                                       {strcpy(yylval.string,yytext);return STRING_CONSTANT;}
+\".*\"                                                       {strcpy(yylval.strconst,yytext);return STRING_CONSTANT;}
 {letter_}({letter_}|{digit})*                                { strcpy(yylval.lexeme,yytext); printf("\n keyword %s", yytext);  return IDENTIFIER;}
 
 {delim}+				;

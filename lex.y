@@ -3,10 +3,13 @@
 #include <sys/queue.h>
 #include<stdlib.h>
 #include<stdio.h>
-#include<string.h>
+#include<cstring>
 #include "y.tab.h" 
-int yyerror(char*);
-int yylex();
+#include<iostream>
+#include<bits/stdc++.h>
+
+using namespace std;
+
 
 extern FILE* yyin;
 int scope=0;
@@ -17,6 +20,23 @@ struct Symbol *sym, *s1, *s2;
 struct Symbol *currmethod;
 union value valu;
 
+char cs[30];
+stack<string>temp_vars;
+
+vector<string> temp_code;
+int global=1;	
+
+extern int yylineno;
+
+extern "C"
+{
+	int yylex(void);
+	void yyerror(const char* s)
+	{
+		printf("%s at line: %d\n", s, yylineno);
+		return;
+	}
+}
 
 struct Symbol *newsym;
 int no_of_array_elements=0;
@@ -44,7 +64,7 @@ struct Symbol *st[50];
   char c;
   char yid[100];
   char character;
-  char string[300];
+  char strconst[100];
   char *a;  
   char lexeme[20];
   int b;
@@ -59,8 +79,8 @@ struct Symbol *st[50];
 %token '{' '}' '(' ')' '[' ']' ',' LT GT NEGINT_CONST FLOAT_CONSTANT STRING_CONSTANT DOUBLE_CONSTANT CHAR_CONSTANT
 
 %token IF ELSE ELIF VOID FIRST INTEGER DOUBLE STRING BOOL BREAK CONT FOR WHILE SCOL IDENTIFIER INTEGER_CONSTANT FLOAT LONG SWITCH RETURN CASE OUT CHAR END INP 
-%type <lexeme>   IDENTIFIER 
-%type <integer>  NEGINT_CONST
+
+ // %type <integer>  NEGINT_CONST
 %type <p> parameters  parameters_list parameter  //counting no of parameters for a function
 
 
@@ -71,10 +91,11 @@ struct Symbol *st[50];
 //char *name,int type,union value *val,char tag
 program :			funcs FIRST '{'{scope++;} stmts_list '}' {scope--;} END{
 						//printf("\nYES\n"); 
-							
-						sym=createsymbol("first",0,&valu,'m',0,scope);
-								
-						s1=createsymbol("end",0,&valu,'m',0,scope);
+						strcpy(cs,"first");
+						printf("%s\n",cs);
+						sym=createsymbol(cs,0,&valu,'m',0,scope);
+						strcpy(cs,"end");	
+						s1=createsymbol(cs,0,&valu,'m',0,scope);
 						//printf("hello 123\n");
 						add_method_to_methodstable(sym); // adding method as it is start 
 						add_method_to_methodstable(s1);
@@ -132,7 +153,8 @@ func_name:                        data_type IDENTIFIER '(' parameters ')'
                                     paramsize=$4;
                                     s1=pop_stack();
                                     set_value(s1->type);
-                                    sym = createsymbol($2, s1->type, &valu, 'f', $4,scope);
+                                    strcpy(cs,yylval.lexeme);
+                                    sym = createsymbol(cs, s1->type, &valu, 'f', $4,scope);
                                     while(paramsize!=0)
                                     {
                                      sym->parameter[$4-paramsize]=symparam[$4-paramsize]; 
@@ -190,7 +212,7 @@ array_declaration :	data_type IDENTIFIER '[' INTEGER_CONSTANT ']' ASSIGN '{' inp
 				struct Symbol* s4 = pop_stack();
 				int size = yylval.integer;	// number of elements
 				char *array_name;
-				strcpy(array_name,$2);	// to get the array name
+				strcpy(array_name,yylval.lexeme);	// to get the array name
 				int ele_type = s4->type; // to get the type of elements
 				if(ele_type == 0)
 					printf("error in declaring void data type\n");
@@ -213,10 +235,11 @@ array_declaration :	data_type IDENTIFIER '[' INTEGER_CONSTANT ']' ASSIGN '{' inp
 				int size = yylval.integer;	// number of elements changed from token $4 to yylavl.integer
 				printf("%d - size \n",size);
 				// to get the array name
-				printf("%s - name \n",$2);
+				printf("%s - name \n",yylval.lexeme);
 				int ele_type = s4->type; // to get the type of elements
-				printf("%d - %s",size,$2);
-				struct Symbol* s5 = createsymbol($2,ele_type, &valu, 'a', size,scope);  // creating symbol of array type
+				printf("%d - %s",size,yylval.lexeme);
+				strcpy(cs,yylval.lexeme);
+				struct Symbol* s5 = createsymbol(cs,ele_type, &valu, 'a', size,scope);  // creating symbol of array type
 				insertsymbol(s5); // inserting symbol 
 				
 				// data_type , inp_list
@@ -265,11 +288,56 @@ assignment_stmt : 		parameter ASSIGN expression {
 							//printf("q3kisfpiwrgjeoe5r\n");
 							//printf("updated bvalue is   ....%d\n",sym1->val.ival);
 							set_value_for_symbol(table[current_method_id].symbols[ind],sym1->type,sym1);
+							
+							
+							
 							//tmp->val.ival = valu.ival;
 						}
 						
 						
 						sym = createsymbol(var_name,t,&valu,'v', 0,scope);
+						string ts="";
+                                    		string t_var = temp_vars.top();
+                                    		temp_vars.pop();
+                                    		string s_var = var_name;
+                                    		string var_var=s_var+"_"+to_string(sym2->scope);
+                                    		global++;
+                                    		switch(sym2->type){
+                                    			case 0:
+                                    			
+                                    				break;
+                                    			case 1:
+                                    				ts="int "+var_var;
+                                    				temp_code.push_back(ts);
+                                    				ts=var_var+" =i "+t_var;
+                                    				temp_code.push_back(ts);
+                                    				break;
+                                    			case 2:
+                                    				ts="float "+var_var;
+                                    				temp_code.push_back(ts);
+                                    				ts=var_var+" =f "+t_var;
+                                    				temp_code.push_back(ts);
+                                    				break;
+                                    			case 3:
+                                    				ts="double "+var_var;
+                                    				temp_code.push_back(ts);
+                                    				ts=var_var+" =d "+t_var;
+                                    				temp_code.push_back(ts);
+                                    				break;
+                                    			case 4:
+                                    				ts="bool "+var_var;
+                                    				temp_code.push_back(ts);
+                                    				ts=var_var+" =b "+t_var;
+                                    				temp_code.push_back(ts);
+                                    				break;
+                                    			case 5:
+                                    				ts="char "+var_var;
+                                    				temp_code.push_back(ts);
+                                    				ts=var_var+" =c "+t_var;
+                                    				temp_code.push_back(ts);
+                                    				break;
+                                    		
+                                    		}
 						//insertsymbol(sym);
 					}
 					
@@ -282,8 +350,8 @@ conditional_stmt :		IF '(' condition ')' '{'{scope++;} stmts_list '}' {scope--;}
 				
 else_if_stmts :		else_if_stmts1 else_stmt{
 					
-				};
-else_if_stmts1 :		else_if_stmt else_if_stmts{
+				}| {};
+else_if_stmts1 :		else_if_stmt else_if_stmts1{
 					
 				}| {};
 else_if_stmt :			ELIF '(' condition ')' '{'{scope++;} stmts_list '}'{scope--;};
@@ -302,12 +370,12 @@ expn_inc :			IDENTIFIER INCREMENT{
 					
 					
 					struct SymbolTable current_method_table = table[current_method_id];
-	   			 	int ind = generate_key($1);
+	   			 	int ind = generate_key(yylval.lexeme);
 	   			 	//printf("_______________ %d _______________",ind);
 	   			 	struct Symbol *tmp = current_method_table.symbols[ind];
 	   			 	
 	   			 	while(tmp){	// checking if the variable is already declared in the method
-						if(strcmp(tmp->name,$1) == 0)
+						if(strcmp(tmp->name,yylval.lexeme) == 0)
 							break;
     						tmp = tmp->next;
 					}
@@ -362,38 +430,43 @@ relational_operator : 		   LTE
                                   {
                                     printf("inside re op\n");
                                     strcpy(valu.sval,"lte");
-                                    struct Symbol * reop = createsymbol("lte",8, &valu, 'c',0,scope);
+                                    strcpy(cs,"lte");
+                                    struct Symbol * reop = createsymbol(cs,8, &valu, 'c',0,scope);
                                     push_stack(reop);
                                   }
                                   | GTE 
                                   {
                                     
                                     strcpy(valu.sval,"gte");
-                                    struct Symbol * reop = createsymbol("gte",8, &valu, 'c',0,scope);
+                                    strcpy(cs,"gte");
+                                    struct Symbol * reop = createsymbol(cs,8, &valu, 'c',0,scope);
                                     push_stack(reop);
                                   }
                                   | LT 
                                   {
+                                  strcpy(cs,"lt");
                                      strcpy(valu.sval,"lt");
-                                    struct Symbol * reop = createsymbol("lt",8, &valu, 'c',0,scope);
+                                    struct Symbol * reop = createsymbol(cs,8, &valu, 'c',0,scope);
                                     push_stack(reop);
                                   }
                                   | GT 
                                   {
                                     strcpy(valu.sval,"gte");
-                                    struct Symbol * reop = createsymbol("gte",8, &valu, 'c',0,scope);
+                                    strcpy(cs,"gt");
+                                    struct Symbol * reop = createsymbol(cs,8, &valu, 'c',0,scope);
                                     push_stack(reop);
                                   }
                                   | EQUAL 
                                   {
                                      strcpy(valu.sval,"eq");
-                                    struct Symbol * reop = createsymbol("eq",8, &valu, 'c',0,scope);
+                                    struct Symbol * reop = createsymbol(cs,8, &valu, 'c',0,scope);
                                     push_stack(reop);
                                   }
                                   | NOTEQUAL
                                   {
+                                  strcpy(cs,"neq");
                                      strcpy(valu.sval,"neq");
-                                    struct Symbol * reop = createsymbol("neq",8, &valu, 'c',0,scope);
+                                    struct Symbol * reop = createsymbol(cs,8, &valu, 'c',0,scope);
                                     push_stack(reop);
                                   };
                                   
@@ -402,10 +475,10 @@ value :			constant {
 					$$ = $1;
 				}| IDENTIFIER {
 					//printf("value in .y file\n");
-					char *var_name = $1;
+					char *var_name = yylval.lexeme;
 					struct Symbol * sym_id = NULL;
 					struct SymbolTable current_method_table = table[current_method_id];
-	   			 	int ind = generate_key($1);
+	   			 	int ind = generate_key(yylval.lexeme);
 	   			 	struct Symbol *tmp = current_method_table.symbols[ind];
 	   			 	
 	   			 	while(tmp){	// checking if the variable exists
@@ -415,12 +488,16 @@ value :			constant {
 					}
 					
 					if(tmp==NULL){
-						printf("Error : variable %s undeclared \n",$1);
+						printf("Error : variable %s undeclared \n",yylval.lexeme);
 						push_stack(tmp);
 						}
 					else{
 					        //printf("value of identifired in value is %s",var_name);
+					        
 						push_stack(tmp);
+				      string varname= tmp->name;		
+                                    string t_var =varname+"_"+to_string(tmp->scope);
+		                     temp_vars.push(t_var);
 							//tmp->val.ival = valu.ival;
 					}
 						
@@ -437,6 +514,10 @@ expression :     		expression operator value{
 					
 						//printf("\n----%d\n",top);
 					struct Symbol * e2 = pop_stack();//exp
+					string valname=temp_vars.top();
+					temp_vars.pop();
+					string expname=temp_vars.top(); 
+					temp_vars.pop();
 					//printf("exp value is%s \n",e2->name);
 					//printf("%d \n",e1->val.ival);
 					printf("%s   %s   %s\n",e1->name,e2->name,e3->name);
@@ -468,16 +549,48 @@ expression :     		expression operator value{
 								case 1:	// value is of type int
 									if(e2->type == 1){	// both are integers
 									//printf("_____________________________________________rghy\n");
-										if(strcmp(e3->name,"+")==0)
+									          string ts="";
+                                                                              string t_var = "_t_"+to_string(global);
+                              					        ts = "int "+ t_var;
+		                     						temp_code.push_back(ts);
+		                       				      // ts = t_var+" =i #"+to_string(valu.ival);
+		                                                             //temp_code.push_back(ts);
+		                                                              temp_vars.push(t_var); 
+				 						if(strcmp(e3->name,"+")==0)
+				 						{
+				 						        string tempexp=t_var+"="+"i "+expname+"+"+"i "+valname;
+				 						        temp_code.push_back(tempexp);
+				 						        global++;
 											valu.ival=e2->val.ival+e1->val.ival;
+									        }		
 										else if(strcmp(e3->name,"-")==0)
+										{
+				 						        string tempexp=t_var+"="+"i "+expname+"-"+"i "+valname;
+				 						        temp_code.push_back(tempexp);
+				 						        global++;										
 											valu.ival=e2->val.ival-e1->val.ival;
+										}	
 										else if(strcmp(e3->name,"*")==0)
+										{
+				 						        string tempexp=t_var+"="+"i "+expname+"*"+"i "+valname;
+				 						        temp_code.push_back(tempexp);
+				 						        global++;										
 											valu.ival=e2->val.ival*e1->val.ival;
+									        }		
 										else if(strcmp(e3->name,"/")==0)
+										{
+				 						        string tempexp=t_var+"="+"i "+expname+"/"+"i "+valname;
+				 						        temp_code.push_back(tempexp);
+				 						        global++;										
 											valu.ival=e2->val.ival/e1->val.ival;
+									        }		
 										else if(strcmp(e3->name,"%")==0)
+										{
+				 						        string tempexp=t_var+"="+"i "+expname+"%"+"i "+valname;
+				 						        temp_code.push_back(tempexp);
+				 						        global++;										
 											valu.ival=e2->val.ival%e1->val.ival;  // also add for +=,-=,*=,/=
+										}	
 									       else
 									       {
 									          printf("enter valid arthimetic operator for integers instead of %s\n",e3->name);
@@ -493,7 +606,8 @@ expression :     		expression operator value{
 									}
 									//printf("%d                      @++++++++++++++++++==@@",valu.ival);
 									printf("create expression_value type is %d\n",t);
-									sym = createsymbol("expression_value",t,&valu,'e', 0,scope);
+									strcpy(cs,"expression_value");
+									sym = createsymbol(cs,t,&valu,'e', 0,scope);
 									break;
 								case 2:	// value is of type float
 										if(e2->type == 1){
@@ -527,23 +641,28 @@ expression :     		expression operator value{
 				};
 				
 operator:			ADD {
-                                	sym = createsymbol("+", 0, &valu, 'o', 0,scope);
+					strcpy(cs,"+");
+                                	sym = createsymbol(cs, 0, &valu, 'o', 0,scope);
                                 	push_stack(sym);
 					
 				} | SUB {
-                                	sym = createsymbol("-", 0, &valu, 'o', 0,scope);
+					strcpy(cs,"-");
+                                	sym = createsymbol(cs, 0, &valu, 'o', 0,scope);
                                 	push_stack(sym);
 					
 				} | MUL {
-                                	sym = createsymbol("*", 0, &valu, 'o', 0,scope);
+					strcpy(cs,"*");
+                                	sym = createsymbol(cs, 0, &valu, 'o', 0,scope);
                                 	push_stack(sym);
 					
 				} | DIV {
-                                	sym = createsymbol("/", 0, &valu, 'o', 0,scope);
+				strcpy(cs,"/");
+                                	sym = createsymbol(cs, 0, &valu, 'o', 0,scope);
                                 	push_stack(sym);
 					
 				} | MOD {
-                                	sym = createsymbol("%", 0, &valu, 'o', 0,scope);
+					strcpy(cs,"%");
+                                	sym = createsymbol(cs, 0, &valu, 'o', 0,scope);
                                 	push_stack(sym);
 					
 				}|relational_operator{printf("re is eplored\n");};		
@@ -555,13 +674,24 @@ constant : 						  INTEGER_CONSTANT
                                     valu.ival = yylval.integer; // setting the value
                                     //char * ivalue;
                                     //sprintf(ivalue,"%d",$1);
-                                    sym = createsymbol("int-const", 1, &valu, 'c', 0,scope);
+                                    strcpy(cs,"int-const");
+                                    sym = createsymbol(cs, 1, &valu, 'c', 0,scope);
                                     insertsymbol(sym);
                                     
                                     push_stack(sym);
+                                    string ts="";
+                                    string t_var = "_t_"+to_string(global);
+                                    ts = "int "+ t_var;
+		                     temp_code.push_back(ts);
+		                     ts = t_var+" =i #"+to_string(valu.ival);
+		                     temp_code.push_back(ts);
+		                     temp_vars.push(t_var);
+		  
+		               
                                   } | STRING_CONSTANT {
-                                  	strcpy(valu.sval,yylval.string);
-                                  	sym=createsymbol("string-const",6, &valu, 'c', 0,scope);
+                                  	strcpy(valu.sval,yylval.strconst);
+                                  	strcpy(cs,"string-const");
+                                  	sym=createsymbol(cs,6, &valu, 'c', 0,scope);
                                   	insertsymbol(sym);
                                   	
                                   	push_stack(sym);
@@ -569,14 +699,16 @@ constant : 						  INTEGER_CONSTANT
                                   {
                                     valu.fval = yylval.f; // setting the value
                                     //char *fvalue = gcvt($1,6,fvalue);
-                                    sym = createsymbol("float-const", 2, &valu, 'c', 0,scope);
+                                    strcpy(cs,"float-const");
+                                    sym = createsymbol(cs, 2, &valu, 'c', 0,scope);
                                     insertsymbol(sym);
                                     
                                     push_stack(sym);
                                   }| CHAR_CONSTANT
                                   {
                                     valu.cval=yylval.a[1];
-                                       sym = createsymbol("char-const", 5, &valu, 'c', 0,scope); 
+                                    strcpy(cs,"char-const");
+                                       sym = createsymbol(cs, 5, &valu, 'c', 0,scope); 
                                        insertsymbol(sym);
                                        push_stack(sym);
                                   } ;
@@ -592,7 +724,7 @@ constant : 						  INTEGER_CONSTANT
 
 parameter : data_type IDENTIFIER{
 
-                                       char * var_name = $2;
+                                       char * var_name = yylval.lexeme;
 	   			 	struct SymbolTable current_method_table = table[current_method_id];
 	   			 	int ind = generate_key(var_name);
 	   			 	struct Symbol *tmp = current_method_table.symbols[ind];
@@ -607,7 +739,8 @@ parameter : data_type IDENTIFIER{
 					{
 		                             set_value(type);	// setting default value based on type
 		                            s1 = pop_stack();	// to get the data_type of the identifier
-		                            sym = createsymbol($2, s1->type, &valu, 'v', 0,scope);	
+		                            strcpy(cs,yylval.lexeme);
+		                            sym = createsymbol(cs, s1->type, &valu, 'v', 0,scope);	
 		                            insertsymbol(sym);
 		                            push_stack(sym);
 		                            }
@@ -620,11 +753,11 @@ parameter : data_type IDENTIFIER{
 	   			 //   array name	index
 	   			 	struct Symbol* s3 = NULL;
 	   			 	struct SymbolTable current_method_table = table[current_method_id];
-	   			 	int ind = generate_key($1);
+	   			 	int ind = generate_key(yylval.lexeme);
 	   			 	struct Symbol *tmp = current_method_table.symbols[ind]; // to get the symbol
 	   			 	
 	   			 	while(tmp){	// checking if the variable exists
-						if(strcmp(tmp->name,$1) ==0)
+						if(strcmp(tmp->name,yylval.lexeme) ==0)
 							break;
     						tmp = tmp->next;
 					}
@@ -638,7 +771,7 @@ parameter : data_type IDENTIFIER{
 					
 	   			 } 
 	   			 | IDENTIFIER {		// a=
-	   			 	char * var_name = $1;
+	   			 	char * var_name = yylval.lexeme;
 	   			 	struct SymbolTable current_method_table = table[current_method_id];
 	   			 	int ind = generate_key(var_name);
 	   			 	struct Symbol *tmp = current_method_table.symbols[ind];
@@ -658,23 +791,24 @@ parameter : data_type IDENTIFIER{
 
 data_type : INTEGER {
 			//printf("data-type-integer \n");
-                        sym = createsymbol("integer", 1, &valu, 'c', 0,scope);
+			strcpy(cs,"integer");
+                        sym = createsymbol(cs, 1, &valu, 'c', 0,scope);
                         push_stack(sym);
                     } | STRING {
-                        
-                        sym = createsymbol("string", 6, &valu, 'c', 0,scope);
+                        strcpy(cs,"string");
+                        sym = createsymbol(cs, 6, &valu, 'c', 0,scope);
                         push_stack(sym);
                     } | CHAR {
-                       
-                        sym = createsymbol("char", 5, &valu, 'c', 0,scope);
+                       strcpy(cs,"char");
+                        sym = createsymbol(cs, 5, &valu, 'c', 0,scope);
                         push_stack(sym);
                     } | FLOAT {
-                        
-                        sym = createsymbol("float", 2, &valu, 'c', 0,scope);
+                        strcpy(cs,"float");
+                        sym = createsymbol(cs, 2, &valu, 'c', 0,scope);
                         push_stack(sym);
                     } | DOUBLE {
-                        
-                        sym = createsymbol("double", 3, &valu, 'c', 0,scope);
+                        strcpy(cs,"double");
+                        sym = createsymbol(cs, 3, &valu, 'c', 0,scope);
                         push_stack(sym);
                     };
                     
@@ -1129,6 +1263,10 @@ printf("------------------------------------------------------------------------
     }
     
     
+    
+    for(int i=0;i<temp_code.size();i++){
+    	cout<<temp_code[i]<<endl;
+    }
   
 }
 
