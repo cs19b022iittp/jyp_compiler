@@ -40,6 +40,7 @@ doubledecimal digit{1,15}
 "continue"						    { return CONT;}
 "char"						    	    { return CHAR;}
 "bool"						    	    { return BOOL;}
+"input()"						    {return INPUT;} 	
 
 ";"				return SCOL;
 

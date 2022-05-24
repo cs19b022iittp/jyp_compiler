@@ -1,9 +1,156 @@
+
+/* first{
+
+  integer n=4;
+  integer arr[4];
+  arr[n]=3;
+  
+
+}
+end  */
+
+
+
+
+
+
+ 
+/*
 first{
-   integer a = 1;
-   integer b = 2;
-   integer c = 3;
-   c = 4;
-   integer d=b+c+a;
-   d=c+3;
+ integer n = 4;
+ integer arr[4];
+ for(integer i=0;i<n;i++){
+ 	arr[i]=i;
+ }
 }
 end
+*/
+
+
+/*
+
+
+
+
+
+
+*/
+
+/*
+first{
+
+ integer a=10;
+ integer b=11;
+ integer c=12;
+ a=a+b+3+4;
+ out(a);
+ 
+ 
+
+}
+end
+
+*/
+
+/*
+
+first{
+
+  integer arr[10];
+    integer a;
+    a=inp();
+    if(a>3)
+    {
+        a=a+1;
+        if(a > 7)
+        {
+         a=a+12;
+ 	 }
+ 	 else
+ 	 {
+ 	   a=0;
+ 	 }
+    }
+    elif( a==3){
+       integer d=6;
+       out(d);
+    }
+    else{
+        a=300;
+   }
+  out(a);
+  string names="yethin";
+  out(names);
+}
+end
+
+*/
+
+/*
+
+integer addd(integer a1)
+{
+   integer d=5;
+   return 7+a1+d+5+6;
+}
+
+first{
+        string name="pavan";
+	integer a = 1;
+	while( a < 5  ){
+		
+	}
+}
+end
+*/
+
+
+
+first{
+  integer a[4];
+     integer b=0;
+     integer sum=0;
+  for(integer i=0; i<4; i++)
+  {
+    a[i]=i;
+    b=a[i];
+    sum=sum+b;
+  }
+  out(sum);
+
+}
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

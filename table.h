@@ -1,7 +1,8 @@
 #include<stdio.h>
 #include<string.h>
 #include <stdlib.h>
-
+#include<iostream>
+using namespace std;
 #define sym_table_size 50
 
 #define parameter_size 10
@@ -32,6 +33,10 @@ struct Symbol{
 	int no_of_elements;// no of parameters or array size
         struct Symbol *parameter[parameter_size];
 };
+struct arr_name_size{
+  string arr_name;
+  string temp_var;
+};
 
 struct SymbolTable{
  int no_of_symbols;
@@ -59,6 +64,7 @@ void push_stack(struct Symbol *s);
 struct Symbol *pop_stack();
 void count();
 int generate_key(char *s);
-
+string generatelabel();
+void write_to_file();
 void traverse(struct Node *root);
 void generate_code(struct Node *root,int pos);

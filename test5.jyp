@@ -1,48 +1,24 @@
-/*
-  nested if else conditional statements
-*/
+first{     
+	integer i =0;
+	integer s = 0;
+	while(i<4){	// while loop
+		for(integer j=0;j<5;j++){ // for loop
+			if(j == 3){
+				break;
+			}
+			elif(j == 1){
+				continue;
+			}
+			else{
+				s=s+j;
+			}
+		}
+		i=i+1;
+	}
+	
+	for( integer k=1;k<5;k++){
+		s=s+k;
+	}
+	out(s);
 
-first
-{
- integer a=6;
- integer b=5;
- integer c=7;
- 
- if(a>6)
- {
-   a=a - 3;
- }
- else
- {
-   b=b+5;
- }
- 
- if(c>7)
- {
-   a=a+7;
- }
- elif( b> 9)
- {
-   c=c+8;
- }
- elif(a <6)
- {
-   b=b+9;
-    if(a>6)
- {
-   a=a - 3;
- }
- else
- {
-   b=b+5;
- }
- }
- else
- {
-   c=c - 1;
- }
- 
- 
- 
-}
-end
+} end 

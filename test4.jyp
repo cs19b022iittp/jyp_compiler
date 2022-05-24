@@ -1,14 +1,16 @@
 /*
-   while loop
-*/
 
-first
-{
-  integer c=12;
-   while(c+3)
-   {
-     integer b=c+13;
-   
-   }
-}
-end
+	for loop inside while loop
+*/
+first{     
+	integer i =0;
+	integer s = 0;
+	while(i<4){	// while loop
+		for(integer j=0;j<5;j++){ // for loop
+			s=s+1;
+		}
+		i=i+1;
+	}
+	out(s);
+
+} end 

@@ -1,0 +1,41 @@
+/*
+program
+*/
+first{     
+	integer i;  				// taking input
+	i = inp();
+	integer s = 0;
+	while(i<4){				// while loop
+	
+		for(integer j=0;j<5;j++){ 	// for loop
+			if(j == 3){
+				if(i==3){       // nested if
+				       out(i);
+					break;	 // break
+					}
+			}
+			elif(j == 1){
+				continue;	 // continue
+			}
+			else{
+				s=s+j;
+			}
+		}
+		i=i+1;
+	}
+	
+	for( integer k=1;k<5;k++){
+		s=s+k;
+	}
+	integer arr[5];				// arrays
+	integer sum=0;
+	integer b = 0;
+	for(integer l=0;l<5;l++){
+	       arr[l]=l;
+		b=arr[l];
+		sum=sum+b;
+	}
+	out(s);
+	out(sum);					// printing output
+
+} end 

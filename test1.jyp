@@ -1,15 +1,26 @@
-/*declaration part
-multi line commnets
-*/
+first{     // nested if else inside for
 
-// single line comments
-first
-{
-//integer if=2;
-integer a=10; 
-integer a=11; // comments between lines
-float c=1.3;
-integer b=6;
-
+	integer a = 4.5;
+	integer s = 0;
+	integer d = 2;
+	float c = 2.5;
+	for(integer i =0;i<4;i++){
+		if(i == 2){
+			if(d == 3){
+				s=s+1;
+			}
+			else{
+				s=s+3;
+			}
+		}
+		elif(i == 3){
+			s=s+2;
+		}
+		else{
+			s=s+3;
+		}
+	}
+	out(s);  // output to be 11
 }
-end
+end  
+

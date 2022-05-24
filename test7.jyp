@@ -1,19 +1,15 @@
-/*
-  nested for
-*/
 
 first{
-    integer a=1;
-    for(integer i=0;i<1;i++)
+  integer a[4];
+     integer b=0;
+     integer sum=0;
+  for(integer i=0; i<4; i++)
   {
-        integer b=20;
-      for(integer j=0;j<1;j++)
-     {
-       integer c=30;
-        a=a+20;
-     }
-     integer d=40;
+    a[i]=i+4;
+    b=a[i];
+    sum=sum+b;
   }
-  integer e=11;
+  out(sum);
+
 }
 end

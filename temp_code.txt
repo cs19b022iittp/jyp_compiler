@@ -1,0 +1,188 @@
+int i_1
+inp int i_1
+int s_1
+int _t_1
+_t_1 =i #0
+s_1 =i _t_1
+label1:
+int _t_2
+_t_2 =i #4
+bool _t_3
+if ( i_1 <i _t_2 ) goto label2
+_t_3 =b #false
+goto label3
+label2:
+_t_3 =b #true
+label3:
+if ( _t_3 !=b #true ) goto label4
+int j_3
+int _t_4
+_t_4 =i #0
+j_3 =i _t_4
+label5:
+int _t_5
+_t_5 =i #5
+bool _t_6
+if ( j_3 <i _t_5 ) goto label6
+_t_6 =b #false
+goto label7
+label6:
+_t_6 =b #true
+label7:
+if ( _t_6 !=b #true ) goto label8
+goto label9
+label10:
+int _t_7
+_t_7 =i j_3
+j_3 =i j_3 +i #1
+goto label5
+label9:
+int _t_8
+_t_8 =i #3
+bool _t_9
+if ( j_3 ==i _t_8 ) goto label11
+_t_9 =b #false
+goto label12
+label11:
+_t_9 =b #true
+label12:
+if ( _t_9 !=b #true ) goto label13
+int _t_10
+_t_10 =i #3
+bool _t_11
+if ( i_1 ==i _t_10 ) goto label14
+_t_11 =b #false
+goto label15
+label14:
+_t_11 =b #true
+label15:
+if ( _t_11 !=b #true ) goto label16
+print int i_1
+char _t_12
+_t_12 =c #'\n'
+print char _t_12
+goto label8
+goto label17
+label16:
+label17:
+goto label18
+label13:
+int _t_13
+_t_13 =i #1
+bool _t_14
+if ( j_3 ==i _t_13 ) goto label19
+_t_14 =b #false
+goto label20
+label19:
+_t_14 =b #true
+label20:
+if ( _t_14 !=b #true ) goto label21
+goto label10
+goto label18
+label21:
+int _t_15
+_t_15 =i s_1 +i j_3
+s_1 =i _t_15
+label18:
+goto label10
+label8:
+int _t_16
+_t_16 =i #1
+int _t_17
+_t_17 =i i_1 +i _t_16
+i_1 =i _t_17
+goto label1
+label4:
+int k_6
+int _t_18
+_t_18 =i #1
+k_6 =i _t_18
+label22:
+int _t_19
+_t_19 =i #5
+bool _t_20
+if ( k_6 <i _t_19 ) goto label23
+_t_20 =b #false
+goto label24
+label23:
+_t_20 =b #true
+label24:
+if ( _t_20 !=b #true ) goto label25
+goto label26
+label27:
+int _t_21
+_t_21 =i k_6
+k_6 =i k_6 +i #1
+goto label22
+label26:
+int _t_22
+_t_22 =i s_1 +i k_6
+s_1 =i _t_22
+goto label27
+label25:
+int _t_23
+_t_23 =i #5
+int arr_8 _t_23
+int sum_8
+int _t_24
+_t_24 =i #0
+sum_8 =i _t_24
+int b_8
+int _t_25
+_t_25 =i #0
+b_8 =i _t_25
+int l_9
+int _t_26
+_t_26 =i #0
+l_9 =i _t_26
+label28:
+int _t_27
+_t_27 =i #5
+bool _t_28
+if ( l_9 <i _t_27 ) goto label29
+_t_28 =b #false
+goto label30
+label29:
+_t_28 =b #true
+label30:
+if ( _t_28 !=b #true ) goto label31
+goto label32
+label33:
+int _t_29
+_t_29 =i l_9
+l_9 =i l_9 +i #1
+goto label28
+label32:
+int _t_30
+_t_30 =i l_9 *i #4
+int _t_31
+_t_31= i #0
+int _t_32
+_t_32 =i _t_31 +i _t_30
+int _t_33
+_t_33 =i arr_8
+_t_33 =i _t_33 +i _t_32
+*_t_33 =i l_9
+int _t_34
+_t_34 =i l_9 *i #4
+int _t_35
+_t_35= i #0
+int _t_36
+_t_36 =i _t_35 +i _t_34
+int _t_37
+_t_37 =i arr_8
+_t_37 =i _t_37 +i _t_36
+b_8 =i *_t_37
+int _t_38
+_t_38 =i sum_8 +i b_8
+sum_8 =i _t_38
+goto label33
+label31:
+print int s_1
+char _t_39
+_t_39 =c #'\n'
+print char _t_39
+print int sum_8
+char _t_40
+_t_40 =c #'\n'
+print char _t_40
